@@ -1,0 +1,10 @@
+{
+  "app": "node dist/customer-app/bin/customer-app.js",
+  "versionReporting": false,
+  "pathMetadata": false,
+  "assetMetadata": false,
+  "context": {
+    "@aws-cdk/core:validateAgainstDefaultRules": false,
+    "aws-cdk:enableDiffNoFail": true
+  }
+}
