@@ -1,0 +1,20 @@
+version: 0.2
+# Stage: wait for Marketplace processing (bounded backoff, configurable maximum); writes processing.json.
+env:
+  shell: bash
+phases:
+  install:
+    on-failure: ABORT
+    commands:
+      - source ci/install-node.sh
+      - npm ci
+      - npm run build
+  build:
+    on-failure: ABORT
+    commands:
+      - ci/restore-artifact.sh SubmissionOutput
+      - ci/marketplace-wait.sh
+artifacts:
+  files:
+    - marketplace/release/**/*
+    - reports/**/*

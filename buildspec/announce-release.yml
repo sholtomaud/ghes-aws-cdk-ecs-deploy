@@ -1,0 +1,20 @@
+version: 0.2
+# Stage: announce the verified release through SNS (idempotent).
+env:
+  shell: bash
+phases:
+  install:
+    on-failure: ABORT
+    commands:
+      - source ci/install-node.sh
+      - npm ci
+      - npm run build
+  build:
+    on-failure: ABORT
+    commands:
+      - ci/restore-artifact.sh VerificationOutput
+      - ci/announce-release.sh
+artifacts:
+  files:
+    - marketplace/release/**/*
+    - reports/**/*

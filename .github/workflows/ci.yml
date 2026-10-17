@@ -1,0 +1,101 @@
+# Fast PR/branch CI. Holds no AWS or Marketplace credentials and cannot publish anything:
+# the controlled release path is the seller CodePipeline (see docs/release-process.md).
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TOOLING_IMAGE: marketplace-tooling:ci
+
+jobs:
+  tooling:
+    name: Tooling image, tests, synth, template checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build tooling image (Containerfile)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: Containerfile
+          tags: ${{ env.TOOLING_IMAGE }}
+          load: true
+          cache-from: type=gha,scope=tooling
+          cache-to: type=gha,mode=max,scope=tooling
+
+      - name: Typecheck, Jest, CDK synth (both apps) and template validation in the tooling image
+        run: |
+          docker run --name tooling ${{ env.TOOLING_IMAGE }} sh -ec '
+            node --version; npm --version; npx --no-install cdk --version; npx --no-install tsc --version
+            node -e "if (process.versions.node.split(\".\")[0] !== \"26\") { console.error(\"Node 26 required\"); process.exit(1) }"
+            npm run typecheck
+            npm run test:coverage
+            npm run cdk:synth:customer
+            npm run template:validate
+            set -a; . ./.env.example; set +a
+            npm run cdk:synth:pipeline
+          '
+          docker cp tooling:/workspace/reports ./reports
+          docker cp tooling:/workspace/marketplace/template/. ./marketplace/template/
+          docker cp tooling:/workspace/cdk.out ./cdk.out
+          docker rm tooling
+
+      - name: Generated template is committed and reproducible
+        run: |
+          git diff --exit-code -- marketplace/template || {
+            echo "::error::marketplace/template differs from a fresh synth. Run 'make synth-customer' and commit the result."; exit 1; }
+          test -s marketplace/template/customer-app.template.json
+          (cd marketplace/template && sha256sum -c customer-app.template.json.sha256)
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: cfn-lint and shellcheck
+        run: |
+          python -m pip install --disable-pip-version-check cfn-lint==1.57.2 shellcheck-py==0.11.0.1
+          cfn-lint marketplace/template/customer-app.template.json
+          cfn-lint --ignore-checks W3005 cdk.out/pipeline/MarketplaceReleasePipeline.template.json
+          shellcheck -x ci/*.sh
+
+      - name: Upload test results and synthesised template
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tooling-results
+          path: |
+            reports/
+            marketplace/template/
+          if-no-files-found: warn
+
+  app-images:
+    name: Application images (unit tests, build, smoke test)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Unit tests inside image test stages
+        run: ci/build-product-images.sh test
+      - name: Build runtime images
+        run: ci/build-product-images.sh build
+      - name: Smoke test the task wiring (shared network namespace, fake LLM)
+        run: ci/smoke-local.sh

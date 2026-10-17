@@ -1,0 +1,16 @@
+version: 0.2
+# Stage: Marketplace submission, step 1. Copies tested images by digest to the Marketplace repositories (image-publishing role only).
+env:
+  shell: bash
+phases:
+  install:
+    on-failure: ABORT
+    commands:
+      - source ci/install-node.sh
+      - npm ci
+      - npm run build
+  build:
+    on-failure: ABORT
+    commands:
+      - ci/restore-artifact.sh TestedOutput
+      - ci/publish-marketplace-images.sh

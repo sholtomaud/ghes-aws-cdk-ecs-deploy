@@ -1,0 +1,24 @@
+version: 0.2
+# Stage: automated build and tests. Builds and pushes images once; later stages never rebuild them.
+env:
+  shell: bash
+  exported-variables:
+    - VERSION
+    - COMMIT_SHA
+phases:
+  install:
+    on-failure: ABORT
+    commands:
+      - source ci/install-node.sh
+      - npm ci
+      - npm run build
+  build:
+    on-failure: ABORT
+    commands:
+      - export COMMIT_SHA="$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - ci/build-and-test.sh
+      - export VERSION="$(node -p "require('./package.json').version")"
+artifacts:
+  files:
+    - marketplace/release/**/*
+    - reports/**/*

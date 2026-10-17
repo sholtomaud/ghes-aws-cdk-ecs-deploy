@@ -21,7 +21,7 @@ $(error CONTAINER_RUNTIME must be 'docker' or 'apple', got '$(CONTAINER_RUNTIME)
 endif
 
 .PHONY: help install build typecheck test test-coverage synth synth-customer synth-pipeline validate \
-	template-check-reproducible app-test app-images app-smoke release-package \
+	template-check-reproducible app-test app-images app-smoke release-rehearsal release-package \
 	tooling-image tooling-test tooling-synth tooling-validate \
 	tooling-image-docker tooling-test-docker tooling-synth-docker tooling-validate-docker \
 	tooling-image-apple tooling-test-apple tooling-synth-apple tooling-validate-apple \
@@ -59,7 +59,7 @@ validate: ## Validate the exported Marketplace template (policy + structure)
 template-check-reproducible: synth-customer ## Fail if the checked-in template differs from a fresh synth
 	git diff --exit-code -- $(TEMPLATE) $(TEMPLATE).sha256 || { echo "Template is not reproducible or not committed. Run 'make synth-customer' and commit." >&2; exit 1; }
 
-app-test: ## Run application unit tests (needs Docker: runs pytest inside the app images' test stage)
+app-test: ## Run application unit tests inside the images' test stages (pytest, vitest; needs Docker)
 	ci/build-product-images.sh test
 
 app-images: ## Build the three application images with Docker
@@ -67,6 +67,9 @@ app-images: ## Build the three application images with Docker
 
 app-smoke: ## Run the three containers in one shared network namespace (like a Fargate task) and smoke test
 	ci/smoke-local.sh
+
+release-rehearsal: ## Local release dry run: push to a throwaway registry, package, verify digests (no AWS)
+	ci/local-release-rehearsal.sh
 
 release-package: ## Package release metadata (needs marketplace/release/images.json from a real image push)
 	npm run release:package

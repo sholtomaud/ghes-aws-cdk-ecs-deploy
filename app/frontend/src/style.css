@@ -1,0 +1,9 @@
+:root { font-family: system-ui, sans-serif; color: #1a1a1a; background: #fafafa; }
+@media (prefers-color-scheme: dark) { :root { color: #eee; background: #161616; } }
+main { max-width: 48rem; margin: 0 auto; padding: 1rem; }
+header { display: flex; justify-content: space-between; align-items: baseline; }
+.messages { list-style: none; padding: 0; }
+.messages li { margin: 0.5rem 0; white-space: pre-wrap; }
+form { display: grid; gap: 0.5rem; }
+textarea { font: inherit; padding: 0.5rem; }
+.error { color: #b00020; }

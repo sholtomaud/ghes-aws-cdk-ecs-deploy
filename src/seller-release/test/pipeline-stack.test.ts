@@ -220,3 +220,34 @@ describe('artifacts, images and logging', () => {
     expect(() => new SellerReleasePipelineStack(new App(), 'Wrong2', { config: cfg, env: { account: cfg.seller.account, region: 'eu-west-1' } })).toThrow(/SELLER_REGION/);
   });
 });
+
+describe('buildspecs match the pipeline wiring', () => {
+  const root = join(__dirname, '..', '..', '..');
+  const expectations: Array<[string, string | undefined, string]> = [
+    ['BuildAndTest', undefined, 'ci/build-and-test.sh'],
+    ['CleanAccountTests', 'BuildOutput', 'ci/test-clean-account.sh'],
+    ['PublishImages', 'TestedOutput', 'ci/publish-marketplace-images.sh'],
+    ['SubmitChangeSet', 'TestedOutput', 'ci/marketplace-submit.sh'],
+    ['WaitForProcessing', 'SubmissionOutput', 'ci/marketplace-wait.sh'],
+    ['VerifyPublication', 'ProcessingOutput', 'ci/marketplace-verify.sh'],
+    ['Announce', 'VerificationOutput', 'ci/announce-release.sh'],
+  ];
+
+  test.each(expectations)('%s restores %s and runs %s', (actionName, artifact, script) => {
+    const action = stages.flatMap((s) => s.Actions).find((a) => a.Name === actionName)!;
+    const spec = readFileSync(join(root, json.Resources[projectLogicalId(action)].Properties.Source.BuildSpec), 'utf8');
+    const inputs = (action.InputArtifacts ?? []).map((i: any) => i.Name).filter((n: string) => n !== 'SourceOutput');
+    expect(inputs).toEqual(artifact ? [artifact] : []);
+    if (artifact) expect(spec).toContain(`ci/restore-artifact.sh ${artifact}`);
+    else expect(spec).not.toContain('ci/restore-artifact.sh');
+    expect(spec).toContain(script);
+    expect(spec).toContain('source ci/install-node.sh');
+    expect(spec).toMatch(/^version: 0\.2$/m);
+  });
+
+  test('exported variables used by the approval action are exported by their stages', () => {
+    const read = (f: string) => readFileSync(join(root, 'buildspec', f), 'utf8');
+    expect(read('build-and-test.yml')).toMatch(/exported-variables:[\s\S]*- VERSION/);
+    expect(read('test-clean-account.yml')).toMatch(/exported-variables:[\s\S]*- APPROVAL_CUSTOM_DATA/);
+  });
+});
