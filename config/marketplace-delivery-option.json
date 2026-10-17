@@ -1,0 +1,7 @@
+{
+  "comment": "Non-secret delivery option metadata for AddDeliveryOptions. Align every field with your existing ContainerProduct listing and the current AWS Marketplace Catalog API documentation before the first submission. {{version}} and {{templateUrl}} are substituted at submission time.",
+  "compatibleServices": ["ECS"],
+  "deploymentResourceName": "AWS CloudFormation template (ECS Fargate, private VPC)",
+  "description": "Deploys the application into your existing VPC and private subnets: one ECS Fargate service behind an internal Application Load Balancer, with Amazon Cognito sign-in. No public application endpoint is created.",
+  "usageInstructions": "1. Review the network prerequisites in the product documentation (two or three private subnets, corporate CIDR, ACM certificate, Bedrock model access).\n2. Create a CloudFormation stack from {{templateUrl}} (version {{version}}) in your account.\n3. Point your corporate DNS name at the LoadBalancerDnsName output and create users in the Cognito user pool.\nTo upgrade, update your existing stack with the new version's template and review the change set first."
+}

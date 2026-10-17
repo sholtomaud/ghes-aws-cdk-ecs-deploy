@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.invalid/schemas/release-manifest.schema.json",
+  "title": "Release manifest",
+  "description": "Single versioned release record shared by every pipeline stage. Produced once by the build stage; later stages only read it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "product", "version", "commitSha", "builtAt", "images", "templates", "releaseNotesPath", "upgradeFrom"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "product": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$" },
+    "commitSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "builtAt": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$" },
+    "images": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frontend", "api", "agent"],
+      "properties": {
+        "frontend": { "$ref": "#/definitions/image" },
+        "api": { "$ref": "#/definitions/image" },
+        "agent": { "$ref": "#/definitions/image" }
+      }
+    },
+    "templates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release", "test"],
+      "properties": {
+        "release": { "$ref": "#/definitions/template" },
+        "test": { "$ref": "#/definitions/template" }
+      }
+    },
+    "releaseNotesPath": { "type": "string", "pattern": "^release-notes/[^/]+\\.md$" },
+    "upgradeFrom": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+  },
+  "definitions": {
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "digest", "stagingRepository", "marketplaceRepository"],
+      "properties": {
+        "tag": { "type": "string", "minLength": 1, "not": { "const": "latest" } },
+        "digest": { "$ref": "#/definitions/digest" },
+        "stagingRepository": { "type": "string", "pattern": "^[a-z0-9.-]+(:\\d+)?/[a-z0-9._/-]+$" },
+        "marketplaceRepository": { "type": "string", "pattern": "^\\d{12}\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/[a-z0-9._/-]+$" }
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^marketplace/" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}
