@@ -42,6 +42,7 @@ describe('seller release configuration', () => {
     ['RELEASE_TOPIC_ARN', 'arn:aws:sns:us-east-1:999999999999:other-account-topic'],
     ['MARKETPLACE_WAIT_MAX_MINUTES', '0'],
     ['MARKETPLACE_WAIT_MAX_MINUTES', '481'],
+    ['MARKETPLACE_LISTING_URL', 'http://aws.amazon.com/marketplace/pp/x'],
   ])('rejects invalid %s=%s with the variable name', (name, value) => {
     expect(() => loadSellerConfig({ ...example, [name]: value })).toThrow(new RegExp(name));
   });

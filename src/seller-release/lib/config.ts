@@ -62,6 +62,7 @@ const RULES: Array<[string, string, (v: string) => boolean]> = [
 const OPTIONAL: Array<[string, string, (v: string) => boolean]> = [
   ['APPROVER_EMAILS', 'comma-separated email addresses', (v) => v.split(',').every((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e.trim()))],
   ['SUPPORTED_UPGRADE_FROM', 'comma-separated semantic versions (x.y.z)', (v) => v.split(',').every((s) => SEMVER.test(s.trim()))],
+  ['MARKETPLACE_LISTING_URL', 'https:// URL of the public listing', (v) => /^https:\/\/\S+$/.test(v)],
 ];
 
 function parseRepositories(v: string): Record<Component, string> | undefined {
