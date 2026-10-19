@@ -1,0 +1,20 @@
+version: 0.2
+# Stage: Marketplace submission, step 2. StartChangeSet (AddDeliveryOptions); writes submission.json.
+env:
+  shell: bash
+phases:
+  install:
+    on-failure: ABORT
+    commands:
+      - source ci/install-node.sh
+      - npm ci
+      - npm run build
+  build:
+    on-failure: ABORT
+    commands:
+      - ci/restore-artifact.sh TestedOutput
+      - ci/marketplace-submit.sh
+artifacts:
+  files:
+    - marketplace/release/**/*
+    - reports/**/*

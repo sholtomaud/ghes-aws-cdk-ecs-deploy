@@ -1,0 +1,15 @@
+node_modules/
+dist/
+cdk.out/
+coverage/
+reports/
+.env
+*.log
+.DS_Store
+# generated per-release; the checked-in template is the dev-fixture build
+marketplace/release/*
+!marketplace/release/.gitkeep
+app/frontend/node_modules/
+app/frontend/dist/
+__pycache__/
+.pytest_cache/

@@ -1,0 +1,48 @@
+{
+  "name": "ghes-aws-cdk-ecs-deploy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AWS Marketplace private container application (customer stack) and controlled seller release pipeline",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=26 <27"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "cdk:synth:customer": "npm run build && cdk synth --app 'node dist/customer-app/bin/customer-app.js' --output cdk.out/customer --quiet && node dist/customer-app/bin/export-template.js",
+    "cdk:synth:pipeline": "npm run build && cdk synth --app 'node dist/seller-release/bin/seller-release.js' --output cdk.out/pipeline --quiet",
+    "template:validate": "node dist/customer-app/bin/validate-template.js marketplace/template/customer-app.template.json",
+    "release:package": "npm run build && node dist/seller-release/bin/package-release.js",
+    "ci": "npm run typecheck && npm test && npm run cdk:synth:customer && npm run template:validate"
+  },
+  "devDependencies": {
+    "@types/jest": "30.0.0",
+    "@types/node": "26.6.5",
+    "aws-cdk": "2.1145.0",
+    "jest": "30.5.2",
+    "jest-junit": "17.0.0",
+    "ts-jest": "29.4.15",
+    "typescript": "6.0.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudformation": "3.1152.0",
+    "@aws-sdk/client-cloudwatch": "3.1152.0",
+    "@aws-sdk/client-cloudwatch-logs": "3.1152.0",
+    "@aws-sdk/client-cognito-identity-provider": "3.1152.0",
+    "@aws-sdk/client-ec2": "3.1152.0",
+    "@aws-sdk/client-elastic-load-balancing-v2": "3.1152.0",
+    "@aws-sdk/client-kms": "3.1152.0",
+    "@aws-sdk/client-lambda": "3.1152.0",
+    "@aws-sdk/client-marketplace-catalog": "3.1152.0",
+    "@aws-sdk/client-resource-groups-tagging-api": "3.1152.0",
+    "@aws-sdk/client-s3": "3.1152.0",
+    "@aws-sdk/client-sns": "3.1152.0",
+    "@aws-sdk/client-sts": "3.1152.0",
+    "ajv": "8.20.0",
+    "aws-cdk-lib": "2.273.0",
+    "constructs": "10.8.1"
+  }
+}

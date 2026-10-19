@@ -1,0 +1,13 @@
+.git
+node_modules
+dist
+cdk.out
+coverage
+reports
+.env
+app/**/node_modules
+app/**/dist
+**/__pycache__
+**/.pytest_cache
+marketplace/release/*
+!marketplace/release/.gitkeep

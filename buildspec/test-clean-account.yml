@@ -1,0 +1,23 @@
+version: 0.2
+# Stage: clean-account deployment tests in the dedicated test account, then the approval summary.
+env:
+  shell: bash
+  exported-variables:
+    - APPROVAL_CUSTOM_DATA
+phases:
+  install:
+    on-failure: ABORT
+    commands:
+      - source ci/install-node.sh
+      - npm ci
+      - npm run build
+  build:
+    on-failure: ABORT
+    commands:
+      - ci/restore-artifact.sh BuildOutput
+      - ci/test-clean-account.sh
+      - export APPROVAL_CUSTOM_DATA="$(cat marketplace/release/approval-custom-data.txt)"
+artifacts:
+  files:
+    - marketplace/release/**/*
+    - reports/**/*

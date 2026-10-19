@@ -1,0 +1,22 @@
+{
+  "fixture": true,
+  "comment": "Deterministic fixture image references for offline synthesis and tests only. Release packaging rejects fixture manifests.",
+  "version": "0.0.0-dev",
+  "images": {
+    "frontend": {
+      "repository": "709825985650.dkr.ecr.us-east-1.amazonaws.com/example-seller/private-app-frontend",
+      "tag": "0.0.0-dev",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "api": {
+      "repository": "709825985650.dkr.ecr.us-east-1.amazonaws.com/example-seller/private-app-api",
+      "tag": "0.0.0-dev",
+      "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "agent": {
+      "repository": "709825985650.dkr.ecr.us-east-1.amazonaws.com/example-seller/private-app-agent",
+      "tag": "0.0.0-dev",
+      "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    }
+  }
+}
